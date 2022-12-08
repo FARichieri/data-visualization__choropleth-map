@@ -81,13 +81,28 @@ const displayChoroplethMap = async () => {
       );
 
     // Add paths
+
+    const projection = d3
+      .geoIdentity()
+      .fitSize(
+        [width * 1.5, height * 2.5],
+        topojson.feature(usCountryData, usCountryData.objects.counties)
+      );
+
+    // set the path's projection:
+    path.projection(projection);
+
+    // Now access the array of features in the collection for use with .data():
+    const counties = topojson.feature(
+      usCountryData,
+      usCountryData.objects.counties
+    ).features;
+
     svg
       .append('g')
       .attr('class', 'counties')
       .selectAll('path')
-      .data(
-        topojson.feature(usCountryData, usCountryData.objects.counties).features
-      )
+      .data(counties)
       .enter()
       .append('path')
       .attr('class', 'county')
@@ -96,7 +111,8 @@ const displayChoroplethMap = async () => {
         const matching = usEducationalData.find((e) => e.fips === d.id);
         return matching.bachelorsOrHigher ? matching.bachelorsOrHigher : 0;
       })
-      .attr('d', path);
+      .attr('d', path)
+      .attr('transform', `scale(0.40, 0.30)`);
 
     // Add Legend
     const legendWidth = width / 5;
