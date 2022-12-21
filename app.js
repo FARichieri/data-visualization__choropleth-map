@@ -12,9 +12,6 @@ const displayChoroplethMap = async () => {
     usEducationalData = await usEducationalData.json();
     usCountryData = await usCountryData.json();
 
-    console.log({ usEducationalData });
-    console.log({ usCountryData });
-
     // Constants
     const width = 550;
     const height = 400;
@@ -22,6 +19,10 @@ const displayChoroplethMap = async () => {
     const path = d3.geoPath();
 
     const colors = {
+      '#fff': {
+        min: 0,
+        max: 3,
+      },
       '#4575b4': {
         min: 3,
         max: 12,
@@ -50,7 +51,27 @@ const displayChoroplethMap = async () => {
         min: 57,
         max: 66,
       },
+      '#0000ff': {
+        min: 66,
+        max: 100,
+      },
     };
+
+    const colorsData = Object.entries(colors);
+
+    const paintColors = (percent) => {
+      const match = colorsData.find(
+        (color) => percent >= color[1].min && percent <= color[1].max
+      );
+      return match[0];
+    };
+
+    // Create tooltip
+    const tooltip = d3
+      .select('.container')
+      .append('div')
+      .attr('id', 'tooltip')
+      .style('opacity', 0);
 
     // Create svg
     const svg = d3
@@ -81,12 +102,11 @@ const displayChoroplethMap = async () => {
       );
 
     // Add paths
-
     const projection = d3
       .geoIdentity()
       .fitSize(
-        [width * 1.5, height * 2.5],
-        topojson.feature(usCountryData, usCountryData.objects.counties)
+        [width * 0.75, height * 0.75],
+        topojson.feature(usCountryData, usCountryData.objects.states)
       );
 
     // set the path's projection:
@@ -98,6 +118,10 @@ const displayChoroplethMap = async () => {
       usCountryData.objects.counties
     ).features;
 
+    const getMatchingCountyData = (d) => {
+      return usEducationalData.find((e) => e.fips === d.id);
+    };
+
     svg
       .append('g')
       .attr('class', 'counties')
@@ -105,18 +129,55 @@ const displayChoroplethMap = async () => {
       .data(counties)
       .enter()
       .append('path')
+      .attr('fill', (d) => {
+        const matchingData = getMatchingCountyData(d);
+        return paintColors(
+          matchingData.bachelorsOrHigher ? matchingData.bachelorsOrHigher : 0
+        );
+      })
       .attr('class', 'county')
       .attr('data-fips', (d) => d.id)
       .attr('data-education', (d) => {
-        const matching = usEducationalData.find((e) => e.fips === d.id);
-        return matching.bachelorsOrHigher ? matching.bachelorsOrHigher : 0;
+        const matchingData = getMatchingCountyData(d);
+        return matchingData.bachelorsOrHigher
+          ? matchingData.bachelorsOrHigher
+          : 0;
+      })
+      .on('mouseover', function (d, item) {
+        d3.select(this).transition().duration('50').attr('opacity', '.85');
+        tooltip.transition().duration(100).style('opacity', 1);
+
+        const getDataEducation = (d) => {
+          const matchingData = getMatchingCountyData(d);
+          return matchingData.bachelorsOrHigher
+            ? matchingData.bachelorsOrHigher
+            : 0;
+        };
+
+        const getAreaName = (d) => {
+          const matchingData = getMatchingCountyData(d);
+          return matchingData.area_name;
+        };
+
+        tooltip
+          .html(
+            `${getAreaName(item)}
+            ${getDataEducation(item)}%
+        `
+          )
+          .attr('data-education', getDataEducation(item))
+          .style('left', d.pageX + 10 + 'px')
+          .style('top', d.pageY + 10 + 'px');
+      })
+      .on('mouseout', function (d, item) {
+        d3.select(this).transition().duration('50').attr('opacity', '1');
+        tooltip.transition().duration(100).style('opacity', 0);
       })
       .attr('d', path)
-      .attr('transform', `scale(0.40, 0.30)`);
+      .attr('transform', `scale(1.3, 1.3)`);
 
     // Add Legend
     const legendWidth = width / 5;
-    const colorsData = Object.entries(colors);
     const xScaleColors = d3
       .scaleBand()
       .domain(d3.range(colorsData.length))
@@ -127,7 +188,7 @@ const displayChoroplethMap = async () => {
 
     svg
       .append('g')
-      .attr('transform', `translate(${padding / 2},${height / 1.6})`)
+      .attr('transform', `translate(${padding / 2},${height - 20})`)
       .attr('id', 'legend')
       .append('g')
       .attr('class', 'axis-colors')

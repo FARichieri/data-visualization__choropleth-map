@@ -1,7 +1,6 @@
 * {
   padding: 0;
   margin: 0;
-  overflow: hidden;
 }
 
 .spinner-border {
@@ -24,4 +23,51 @@ line {
 
 path {
   stroke-width: 0.5px;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main {
+  height: 90%;
+  width: 90%;
+}
+
+#tooltip {
+  align-items: center;
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #313639;
+  box-shadow: 0 0 10px 1px #00000080;
+  color: #313639;
+  display: flex;
+  font-size: 1.5vw;
+  justify-content: center;
+  padding: 0.5rem;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  width: 15vw;
+}
+
+a {
+  font-family: 'Orbitron', sans-serif;
+  text-decoration: none;
+  color: black;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: 0.5s;
+  opacity: 0.7;
+  padding: 0.5rem;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+}
+
+a:hover {
+  opacity: 1;
+  filter: brightness(1.5);
 }
