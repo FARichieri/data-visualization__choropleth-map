@@ -19,7 +19,7 @@ const displayChoroplethMap = async () => {
     const path = d3.geoPath();
 
     const colors = {
-      '#fff': {
+      '#eee': {
         min: 0,
         max: 3,
       },
@@ -177,7 +177,7 @@ const displayChoroplethMap = async () => {
       .attr('transform', `scale(1.3, 1.3)`);
 
     // Add Legend
-    const legendWidth = width / 5;
+    const legendWidth = width / 4;
     const xScaleColors = d3
       .scaleBand()
       .domain(d3.range(colorsData.length))
@@ -200,13 +200,13 @@ const displayChoroplethMap = async () => {
       .append('g')
       .attr('id', 'colors')
       .selectAll('rect')
-      .data(colorsData)
+      .data(colorsData.slice(0, 8))
       .enter()
       .append('rect')
-      .attr('transform', `translate(${0}, ${-20})`)
+      .attr('transform', `translate(${7.69}, ${-20})`)
       .attr('x', (d, i) => xScaleColors(i))
       .attr('y', 10)
-      .attr('width', 5)
+      .attr('width', legendWidth / colorsData.length)
       .attr('height', 10)
       .attr('fill', (d) => d[0]);
 
